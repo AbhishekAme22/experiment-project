@@ -119,6 +119,7 @@ export default {
     },
     clearASRContent() {
       this.currentText = ""
+      this.currentTextFinal = "" // Also clear finalized transcript
     },
     async startCopilot() {
       this.copilot_starting = true
@@ -151,11 +152,22 @@ export default {
       const recognizer = this.recognizer
       const sdk = SpeechSDK
 
+      // Add recognizing event for real-time transcription
+      recognizer.recognizing = (sender, event) => {
+        if (sdk.ResultReason.RecognizingSpeech === event.result.reason && event.result.text.length > 0) {
+          // Show partial result in real-time (not appended)
+          this.currentText = this.currentTextFinal + '\n' + event.result.text;
+        }
+      };
+
+      // Store finalized text separately
+      this.currentTextFinal = '';
 
       recognizer.recognized = (sender, event) => {
         if (sdk.ResultReason.RecognizedSpeech === event.result.reason && event.result.text.length > 0) {
           const text = event.result.text
-          this.currentText = this.currentText + "\n" + text
+          this.currentTextFinal = this.currentTextFinal + "\n" + text
+          this.currentText = this.currentTextFinal; // update display with finalized text
         } else if (sdk.ResultReason.NoMatch === event.result.reason) {
           console.log("Speech could not be recognized")
         }
