@@ -7,7 +7,7 @@
           Speech Recognition Results
         </div>
         <div v-if="!currentText" style="color: gray">No Content</div>
-        <div class="asr_content">{{ currentText }}</div>
+        <textarea v-else class="asr_content" v-model="currentText" rows="8" style="width:100%;resize:vertical;"></textarea>
         <div class="single_part_bottom_bar">
           <el-button icon="el-icon-delete" :disabled="!currentText" @click="clearASRContent">
             Clear Text
@@ -170,6 +170,24 @@ export default {
           this.currentText = this.currentTextFinal; // update display with finalized text
         } else if (sdk.ResultReason.NoMatch === event.result.reason) {
           console.log("Speech could not be recognized")
+        }
+      };
+
+      // Auto-restart logic for sessionStopped and canceled events
+      recognizer.sessionStopped = (s, e) => {
+        if (this.state === 'ing') {
+          console.log('Session stopped, restarting recognition...');
+          recognizer.stopContinuousRecognitionAsync(() => {
+            recognizer.startContinuousRecognitionAsync();
+          });
+        }
+      };
+      recognizer.canceled = (s, e) => {
+        if (this.state === 'ing') {
+          console.log('Recognition canceled, restarting...');
+          recognizer.stopContinuousRecognitionAsync(() => {
+            recognizer.startContinuousRecognitionAsync();
+          });
         }
       };
 
