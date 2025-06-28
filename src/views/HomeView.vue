@@ -173,24 +173,6 @@ export default {
         }
       };
 
-      // Auto-restart logic for sessionStopped and canceled events
-      recognizer.sessionStopped = (s, e) => {
-        if (this.state === 'ing') {
-          console.log('Session stopped, restarting recognition...');
-          recognizer.stopContinuousRecognitionAsync(() => {
-            recognizer.startContinuousRecognitionAsync();
-          });
-        }
-      };
-      recognizer.canceled = (s, e) => {
-        if (this.state === 'ing') {
-          console.log('Recognition canceled, restarting...');
-          recognizer.stopContinuousRecognitionAsync(() => {
-            recognizer.startContinuousRecognitionAsync();
-          });
-        }
-      };
-
       recognizer.startContinuousRecognitionAsync(
           () => {
             this.copilot_starting = false
